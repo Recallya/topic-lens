@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="topiclens-token" content="{{ csrf }}">
+  <meta name="description" content="Eksplorasi topik, kumpulkan artikel, dan pelajari pola pembahasannya dari waktu ke waktu.">
+  <title>Topic Lens · Eksplorasi tren</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script defer src="{{ url_for('static', filename='app.js') }}"></script>
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar">
+    <a class="brand" href="/" aria-label="Topic Lens beranda"><span class="brand-mark">tl</span>topic<span>lens</span></a>
+    <p class="eyebrow">RUANG RISET PRIBADI</p>
+    <div class="nav-current"><span aria-hidden="true">▥</span> Eksplorasi topik <span class="nav-count">01</span></div>
+    <form id="crawl-form">
+      <div class="section-label"><span>01</span> TOPIK</div>
+      <label for="topic">Apa yang ingin ditelusuri?</label>
+      <input id="topic" name="topic" list="topic-list" value="Teknologi" minlength="2" maxlength="80" required autocomplete="off">
+      <datalist id="topic-list"><option value="Teknologi"><option value="Artificial Intelligence"><option value="Ekonomi"><option value="Perubahan Iklim"><option value="Energi"><option value="Sepak Bola"></datalist>
+      <div class="topic-chips"><button type="button" data-topic="Teknologi">Teknologi</button><button type="button" data-topic="Ekonomi">Ekonomi</button><button type="button" data-topic="Energi">Energi</button></div>
+      <button class="secondary full" type="button" id="view-topic">Lihat analisis topik</button>
+      <div class="section-label"><span>02</span> SUMBER CRAWLING</div>
+      <label class="check-row"><input type="checkbox" name="source" value="antara" checked><span>ANTARA<small>Berita Indonesia · RSS</small></span></label>
+      <label class="check-row"><input type="checkbox" name="source" value="bbc"><span>BBC<small>Berita dunia · RSS</small></span></label>
+      <details class="custom-source"><summary>Tambahkan URL sendiri</summary><label for="urls">RSS atau halaman HTML</label><textarea id="urls" rows="3" placeholder="https://situs-berita.com/rss"></textarea><small>Satu URL per baris, maksimal 3. HTML ditelusuri satu tingkat pada domain yang sama.</small></details>
+      <label class="limit-label" for="limit">Maksimal artikel diperiksa <select id="limit"><option value="20">20</option><option value="40" selected>40</option><option value="100">100</option></select></label>
+      <button class="primary full" type="submit" id="crawl-button"><span aria-hidden="true">↗</span> Mulai crawling</button>
+      <p class="sidebar-note">Crawler berjalan saat diminta. Hasil disimpan di perangkat ini.</p>
+    </form>
+    <div class="sidebar-footer"><span class="small-mark">PY</span><div>Proyek Python Anda<small>Flask + SQLite</small></div></div>
+  </aside>
+
+  <main>
+    <header class="topbar"><span>Workspace <span class="slash">/</span> <strong>Eksplorasi</strong></span><span class="local-label">Penyimpanan lokal</span></header>
+    <div class="workspace">
+      <div class="page-heading"><div><p class="eyebrow">TOPIC INTELLIGENCE</p><h1>Ikuti jejak sebuah topik.</h1><p>Dari artikel menjadi kata, pola, dan perspektif.</p></div><label class="demo-control"><input id="demo" type="checkbox" checked><span>Mode demo</span></label></div>
+      <div id="demo-banner" class="notice demo-notice"><strong>Data simulasi</strong><span>Untuk mencoba tampilan. Bukan hasil crawling atau tren nyata.</span></div>
+      <div id="status" class="status" role="status" aria-live="polite" hidden></div>
+      <section class="topic-heading" aria-label="Topik aktif"><div><span class="topic-dot" aria-hidden="true"></span><h2 id="active-topic">Teknologi</h2><span class="tag" id="data-badge">DEMO</span></div><span id="date-range">Memuat rentang waktu…</span></section>
+      <section class="metrics" aria-label="Ringkasan analisis">
+        <article class="metric"><span>Artikel dalam periode</span><strong id="metric-total">—</strong><small id="metric-stored">Berdasarkan tanggal terbit</small></article>
+        <article class="metric"><span>Sumber terwakili</span><strong id="metric-sources">—</strong><small>Dalam artikel yang terkumpul</small></article>
+        <article class="metric"><span>Puncak sampel</span><strong id="metric-peak" class="peak-value">—</strong><small id="peak-count">Belum ada data</small></article>
+        <article class="metric"><span>Interval dengan artikel</span><strong id="metric-coverage">—</strong><small id="coverage-count">Bukan cakupan seluruh web</small></article>
+      </section>
+
+      <section class="panel trend-panel" aria-labelledby="trend-title">
+        <div class="panel-header"><div><h2 id="trend-title">Jejak pembahasan</h2><p>Jumlah artikel berdasarkan tanggal terbit · WIB</p></div><div class="periods" role="group" aria-label="Pengelompokan waktu"><button data-period="yearly" aria-pressed="false">Yearly</button><button data-period="monthly" aria-pressed="true">Monthly</button><button data-period="daily" aria-pressed="false">Daily</button><button data-period="hours" aria-pressed="false">Last 5 hours</button></div></div>
+        <div class="chart-legend"><span class="legend-dot"></span> Artikel terkumpul <span class="chart-unit" id="chart-unit">Per bulan · 5 tahun terakhir</span></div>
+        <div id="trend-chart" class="trend-chart" aria-live="polite"></div>
+        <div class="chart-foot"><span id="chart-note">Interval tanpa artikel belum memiliki data; bukan berarti tidak ada pembahasan.</span><details><summary>Lihat angka</summary><div class="series-table"><table><thead><tr><th>Interval (WIB)</th><th>Artikel</th></tr></thead><tbody id="series-body"></tbody></table></div></details></div>
+      </section>
+
+      <div class="visual-grid">
+        <section class="panel cloud-panel" aria-labelledby="cloud-title"><div class="panel-header"><div><h2 id="cloud-title">Kata dalam percakapan</h2><p>Ukuran kata menunjukkan frekuensi kemunculan.</p></div><span class="tag subtle">WORD CLOUD</span></div><div id="word-cloud" class="word-cloud"></div><div class="cloud-foot">Dari judul + teks/ringkasan artikel pada periode terpilih.</div></section>
+        <section class="panel words-panel" aria-labelledby="words-title"><div class="panel-header"><div><h2 id="words-title">Kata teratas</h2><p>Frekuensi dalam sampel</p></div></div><ol id="top-words" class="top-words"></ol></section>
+      </div>
+
+      <section class="panel articles-panel"><div class="panel-header"><div><h2>Di balik datanya</h2><p>Artikel terbaru dalam periode terpilih · maksimal 80 ditampilkan</p></div><span id="article-count" class="tag subtle">0 ARTIKEL</span></div><div class="table-wrap"><table><thead><tr><th>ARTIKEL</th><th>SUMBER</th><th>TERBIT · WIB</th></tr></thead><tbody id="articles-body"></tbody></table></div></section>
+
+      <section class="bottom-grid">
+        <div class="panel archive-panel"><h2>Lengkapi riwayat 5 tahun</h2><p>RSS biasanya hanya memuat berita terbaru. Impor arsip bertanggal untuk menganalisis periode sebelumnya.</p><form id="import-form"><label for="archive-file">File CSV UTF-8 · maksimal 5 MB</label><div class="import-controls"><input id="archive-file" type="file" accept=".csv,text/csv" required><button class="secondary" id="import-button" type="submit">Impor arsip</button></div></form><details><summary>Format CSV & cara kerja</summary><p>Kolom wajib: <code>title,text,url,published_at</code>. Opsional: <code>source</code>. Tanggal ISO, misalnya <code>2025-08-20T14:30:00+07:00</code>. Semua kata pada topik harus ditemukan dalam judul atau teks. URL yang sama dalam satu topik tidak dihitung ulang.</p></details></div>
+        <div class="method-note"><p class="eyebrow">MEMBACA HASIL</p><h2>Sampel berita, bukan seluruh internet.</h2><p>Grafik mengukur artikel yang terkumpul, bukan indeks Google Trends. Puncak menunjukkan interval dengan artikel terbanyak dalam sampel Anda.</p><p id="quality-note">Tanggal yang tidak diketahui tidak dimasukkan ke grafik. Tampilan 5 jam memerlukan waktu terbit yang lengkap.</p><a href="https://developers.google.com/search/apis/trends" target="_blank" rel="noopener noreferrer">Tentang sumber Google Trends ↗</a></div>
+      </section>
+      <footer class="page-footer"><span>TOPIC LENS <span class="slash">/</span> Personal research workspace</span><span>Belajar lewat data, satu topik setiap kali.</span></footer>
+    </div>
+  </main>
+</div>
+</body>
+</html>
